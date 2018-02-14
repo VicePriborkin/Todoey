@@ -19,21 +19,24 @@ class ToDoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-        print(path!)
-        
-        let newItem : Item = Item()
-        newItem.title = "Vice"
-        itemArray.append(newItem)
-        
-        let newItem2 : Item = Item()
-        newItem2.title = "David"
-        itemArray.append(newItem2)
-        
-        let newItem3 : Item = Item()
-        newItem3.title = "Joe"
-        itemArray.append(newItem3)
+//        
+//        
+//        let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+//        print(path!)
+//        
+//        let newItem : Item = Item()
+//        newItem.title = "Vice"
+//        itemArray.append(newItem)
+//        
+//        let newItem2 : Item = Item()
+//        newItem2.title = "David"
+//        itemArray.append(newItem2)
+//        
+//        let newItem3 : Item = Item()
+//        newItem3.title = "Joe"
+//        itemArray.append(newItem3)
+//        
+        loadItems()
         
 //        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
 //            itemArray = items
@@ -133,6 +136,30 @@ class ToDoListViewController: UITableViewController {
         } catch {
             print("Error saving Item Array: \(error)")
         }
+    }
+    
+    func loadItems(){
+        do {
+            let data = try Data(contentsOf: dataFilePath!)
+            let decoder : PropertyListDecoder = PropertyListDecoder()
+            
+            //this is the method that decodes our data. We have to specify what is the data type of the decoded value. Our data is an Array of Items - [Item]. We have to add the .self so it will know that we are reffering to our Item type and not an object.
+        
+            itemArray = try decoder.decode([Item].self, from: data)
+        } catch {
+            print("Error decoding Item Array: \(error)")
+        }
+        
+//        //Another way of TRY & CATCH for decoding the Data. In case that try? will receive an error, it will return nil witout any exception. We will usually use this syntax when we do not care on what error we receive.
+//
+//        if let dataTwo = try? Data(contentsOf: dataFilePath!){
+//            let decoderTwo : PropertyListDecoder = PropertyListDecoder()
+//            do {
+//                itemArray = try decoderTwo.decode([Item].self, from: dataTwo)
+//            } catch {
+//                print("Error decoding Item Array: \(error)")
+//            }
+//        }
     }
     
     
