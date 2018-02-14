@@ -13,10 +13,15 @@ class ToDoListViewController: UITableViewController {
     var itemArray : [Item] = [Item]()
     
     // setting the reference to UserDefaults
-    let defaults = UserDefaults.standard
+    //let defaults = UserDefaults.standard
+    
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("MyData.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        print(path!)
         
         let newItem : Item = Item()
         newItem.title = "Vice"
@@ -30,9 +35,9 @@ class ToDoListViewController: UITableViewController {
         newItem3.title = "Joe"
         itemArray.append(newItem3)
         
-        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-            itemArray = items
-        }
+//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
+//            itemArray = items
+//        }
         
     }
     
@@ -67,6 +72,9 @@ class ToDoListViewController: UITableViewController {
         //        } else {
         //            itemArray[indexPath.row].done = false
         //        }
+        
+        saveItems()
+        
         tableView.reloadData()
         
         // change appearance of selected row
@@ -96,8 +104,10 @@ class ToDoListViewController: UITableViewController {
             newItem.title = textField.text!
             self.itemArray.append(newItem)
             
+            self.saveItems()
+            
             // saving to UserDefaults
-            self.defaults.set(self.itemArray, forKey: "ToDoListArray")
+            //self.defaults.set(self.itemArray, forKey: "ToDoListArray")
             
             // reload the table view with our new items
             self.tableView.reloadData()
@@ -109,6 +119,22 @@ class ToDoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
         
     }
+    
+    //MARK: - Model Manipulation Methods
+    
+    func saveItems(){
+        //create an encoder
+        let encoder : PropertyListEncoder = PropertyListEncoder()
+        do {
+            // encoding the data
+            let data = try encoder.encode(itemArray)
+            // writing our data custom file
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error saving Item Array: \(error)")
+        }
+    }
+    
     
 }
 
