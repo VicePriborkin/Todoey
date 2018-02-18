@@ -9,7 +9,7 @@
 import UIKit
 import CoreData
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: UITableViewController  {
     
     //create the context from AppDelegatr singleton
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -126,16 +126,58 @@ class ToDoListViewController: UITableViewController {
         }
     }
     
-    func loadItems(){
-        //we have to specify the data type of the request and the entity type
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
+    func loadItems(with request : NSFetchRequest<Item> = Item.fetchRequest()){
+        
         do {
             itemArray = try context.fetch(request)
         } catch {
             print("Error fetching data from Context: \(error)")
         }
+        tableView.reloadData()
         
     }
    
 }
+
+//MARK: - SearchBar Delegate Methods
+
+extension ToDoListViewController : UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+        request.predicate = NSPredicate(format: "title CONTAINS[cd]%@", searchBar.text!)
+        
+        //sortDescriptors - plural - it want an array of sortDescriptors
+        //but we only have one so we wrap it in an array
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        loadItems(with: request)
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
