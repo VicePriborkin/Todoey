@@ -7,8 +7,12 @@
 //
 
 import UIKit
+import CoreData
 
 class ToDoListViewController: UITableViewController {
+    
+    //create the context from AppDelegatr singleton
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     var itemArray : [Item] = [Item]()
     
@@ -19,29 +23,8 @@ class ToDoListViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        
-//        
-//        let path = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-//        print(path!)
-//        
-//        let newItem : Item = Item()
-//        newItem.title = "Vice"
-//        itemArray.append(newItem)
-//        
-//        let newItem2 : Item = Item()
-//        newItem2.title = "David"
-//        itemArray.append(newItem2)
-//        
-//        let newItem3 : Item = Item()
-//        newItem3.title = "Joe"
-//        itemArray.append(newItem3)
-//        
+       
         loadItems()
-        
-//        if let items = defaults.array(forKey: "ToDoListArray") as? [Item] {
-//            itemArray = items
-//        }
-        
     }
     
     //MARK: - Tableview Datasource Methods
@@ -69,19 +52,26 @@ class ToDoListViewController: UITableViewController {
         // short way
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        //        // long way
-        //        if itemArray[indexPath.row].done == false {
-        //            itemArray[indexPath.row].done = true
-        //        } else {
-        //            itemArray[indexPath.row].done = false
-        //        }
-        
+//        context.delete(itemArray[indexPath.row])
+//        itemArray.remove(at: indexPath.row)
         saveItems()
         
         tableView.reloadData()
         
         // change appearance of selected row
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            context.delete(itemArray[indexPath.row])
+            itemArray.remove(at: indexPath.row)
+            
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            
+            saveItems()
+        }
+        
     }
     
     //MARK: - Add new items
@@ -103,8 +93,10 @@ class ToDoListViewController: UITableViewController {
         // create action to alert
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             // what will happen when the user clicks add
-            let newItem : Item = Item()
+            
+            let newItem : Item = Item(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false
             self.itemArray.append(newItem)
             
             self.saveItems()
@@ -126,42 +118,24 @@ class ToDoListViewController: UITableViewController {
     //MARK: - Model Manipulation Methods
     
     func saveItems(){
-        //create an encoder
-        let encoder : PropertyListEncoder = PropertyListEncoder()
         do {
             // encoding the data
-            let data = try encoder.encode(itemArray)
-            // writing our data custom file
-            try data.write(to: dataFilePath!)
+            try context.save()
         } catch {
-            print("Error saving Item Array: \(error)")
+            print("Error saving Context: \(error)")
         }
     }
     
     func loadItems(){
+        //we have to specify the data type of the request and the entity type
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
         do {
-            let data = try Data(contentsOf: dataFilePath!)
-            let decoder : PropertyListDecoder = PropertyListDecoder()
-            
-            //this is the method that decodes our data. We have to specify what is the data type of the decoded value. Our data is an Array of Items - [Item]. We have to add the .self so it will know that we are reffering to our Item type and not an object.
-        
-            itemArray = try decoder.decode([Item].self, from: data)
+            itemArray = try context.fetch(request)
         } catch {
-            print("Error decoding Item Array: \(error)")
+            print("Error fetching data from Context: \(error)")
         }
         
-//        //Another way of TRY & CATCH for decoding the Data. In case that try? will receive an error, it will return nil witout any exception. We will usually use this syntax when we do not care on what error we receive.
-//
-//        if let dataTwo = try? Data(contentsOf: dataFilePath!){
-//            let decoderTwo : PropertyListDecoder = PropertyListDecoder()
-//            do {
-//                itemArray = try decoderTwo.decode([Item].self, from: dataTwo)
-//            } catch {
-//                print("Error decoding Item Array: \(error)")
-//            }
-//        }
     }
-    
-    
+   
 }
 
