@@ -8,8 +8,11 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeTableViewController {
+    
+    @IBOutlet weak var searchBar: UISearchBar!
     
     let realm : Realm = try! Realm()
     
@@ -26,6 +29,23 @@ class ToDoListViewController: SwipeTableViewController {
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        
+        if let colorHex = selectedCategory?.color {
+            title = selectedCategory!.name
+            
+            if let navBar = navigationController?.navigationBar {
+                if let navBarColor = UIColor(hexString: colorHex) {
+                navBar.barTintColor = UIColor(hexString: colorHex)
+                    navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+                    
+                    navBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : ContrastColorOf(navBarColor, returnFlat: true)]
+                    
+                    searchBar.barTintColor = navBarColor
+                }
+            }
+        }
+    }
     //MARK: - Tableview Datasource Method
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -40,6 +60,11 @@ class ToDoListViewController: SwipeTableViewController {
             cell.textLabel?.text = item.title
             //Ternary Operator - short way
             cell.accessoryType = item.done ? .checkmark : .none
+            
+            if let color = UIColor(hexString: selectedCategory!.color)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(toDoItems!.count)){
+                cell.backgroundColor = color
+                cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+            }
         } else {
             cell.textLabel?.text = "NO Items Added"
         }
@@ -109,27 +134,27 @@ class ToDoListViewController: SwipeTableViewController {
         present(alert, animated: true, completion: nil)
     }
     //MARK: - An exapmle of deleting with Swype
-//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-//        if editingStyle == .delete {
-//
-//            if let itemForDeletion = self.toDoItems?[indexPath.row]{
-//                do {
-//                    try self.realm.write {
-//                        self.realm.delete(itemForDeletion)
-//                    }
-//                } catch {
-//                    print("Error deleting Item: \(error)")
-//                }
-//
-//
-//                self.tableView.reloadData()
-//            }
-//        }
-//    }
+    //    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    //        if editingStyle == .delete {
+    //
+    //            if let itemForDeletion = self.toDoItems?[indexPath.row]{
+    //                do {
+    //                    try self.realm.write {
+    //                        self.realm.delete(itemForDeletion)
+    //                    }
+    //                } catch {
+    //                    print("Error deleting Item: \(error)")
+    //                }
+    //
+    //
+    //                self.tableView.reloadData()
+    //            }
+    //        }
+    //    }
     
     
     //MARK: - Model manipulation Methods
-
+    
     func loadItems(){
         toDoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         
