@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: SwipeTableViewController {
     
     let realm : Realm = try! Realm()
     
@@ -33,7 +33,7 @@ class ToDoListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "toDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item : Item = toDoItems?[indexPath.row]{
             //because the itemArray is now an Item and not a String
@@ -108,25 +108,24 @@ class ToDoListViewController: UITableViewController {
         //show popup
         present(alert, animated: true, completion: nil)
     }
-    
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            print("DELETED")
-            
-//            do{
-//                try self.realm.write {
-//                    realm.delete(toDoItems![indexPath.row])
-//                    tableView.deleteRows(at: [indexPath], with: .fade)
+    //MARK: - An exapmle of deleting with Swype
+//    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+//        if editingStyle == .delete {
+//
+//            if let itemForDeletion = self.toDoItems?[indexPath.row]{
+//                do {
+//                    try self.realm.write {
+//                        self.realm.delete(itemForDeletion)
+//                    }
+//                } catch {
+//                    print("Error deleting Item: \(error)")
 //                }
-//            } catch {
-//                print("Error deleting item: \(error)")
+//
+//
+//                self.tableView.reloadData()
 //            }
-//
-//
-//            self.tableView.reloadData()
-            
-        }
-    }
+//        }
+//    }
     
     
     //MARK: - Model manipulation Methods
@@ -135,6 +134,18 @@ class ToDoListViewController: UITableViewController {
         toDoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
         
         tableView.reloadData()
+    }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let itemForDeletion = toDoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(itemForDeletion)
+                }
+            } catch {
+                print("Error deleting Item :\(error)")
+            }
+        }
     }
 }
 
