@@ -93,6 +93,7 @@ class ToDoListViewController: UITableViewController {
                     try self.realm.write {
                         let newItem = Item()
                         newItem.title = textField.text!
+                        newItem.dateCreated = Date()
                         currentCategory.items.append(newItem)
                     }
                 } catch {
@@ -111,10 +112,19 @@ class ToDoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             print("DELETED")
-            /*
-             self.tableArray.remove(at: indexPath.row)
-             tableView.deleteRows(at: [indexPath], with: .fade)
-             */
+            
+//            do{
+//                try self.realm.write {
+//                    realm.delete(toDoItems![indexPath.row])
+//                    tableView.deleteRows(at: [indexPath], with: .fade)
+//                }
+//            } catch {
+//                print("Error deleting item: \(error)")
+//            }
+//
+//
+//            self.tableView.reloadData()
+            
         }
     }
     
@@ -133,7 +143,7 @@ extension ToDoListViewController : UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         if searchBar.text?.count != 0 {
-            toDoItems = toDoItems?.filter("title CONTAINS[cd] %@" , searchBar.text!).sorted(byKeyPath: "title" , ascending: true)
+            toDoItems = toDoItems?.filter("title CONTAINS[cd] %@" , searchBar.text!).sorted(byKeyPath: "dateCreated" , ascending: false)
             tableView.reloadData()
         }
     }
